@@ -142,6 +142,7 @@ Vector2i HandleMouse(Vector2i pos)
 
 Vector2i selectPlayer(std::vector <std::vector<int> > boardCheck, Vector2i pos, int woodPlay, int steelPlay, bool after)
 {
+//	std::cout << woodPlay << ' ' << steelPlay << "\n";
 	Vector2i ij = HandleMouse(pos);
 	for (int i = 0; i < 6; ++i)
 	{
@@ -304,6 +305,16 @@ void playerMove(RenderWindow &window, Sprite sBoard, Vector2i player, std::vecto
 					f[dich].setPosition(-100, -100);
 				}
 				board[possibleMove[i][0]][possibleMove[i][1]] = 1;
+				int mang = 0;
+				for (int i = 0; i < 5; i++)
+				{
+					for (int j = 0; j < 13; j++)
+					{
+						if (board[i][j] == -1) mang++;
+					}
+				}
+				if (mang == 0) steelPlay = 4;
+
 			}
 			boardCheck[j][0] = possibleMove[i][0];
 			boardCheck[j][1] = possibleMove[i][1];
@@ -357,6 +368,17 @@ int selectCard(Vector2i pos, Sprite cards[])
 		{
 			return i+1;
 		}
+	}
+}
+
+void cancelSelection(Sprite sPoint[], std::vector <std::vector<int> > &possibleMove, int &buoc)
+{
+	buoc = 0;
+	for (int i = 0; i < 57; ++i)
+	{
+		sPoint[i].setPosition(-100, -100);
+		possibleMove[i][0] = -1;
+		possibleMove[i][1] = -1;
 	}
 }
 
@@ -444,13 +466,17 @@ void PlayGame(RenderWindow &window, Music &music)
 						cardSelected = true;
 					}
 
-					//						std::cout << HandleMouse(pos).x << ' ' << HandleMouse(pos).y << std::endl;
 					else if (playerSelected)
 					{
-						playerMove(window, sBoard, player, possibleMove, pos, boardPoint, boardCheck, moved, sPoint, playerSelected, woodPlay, steelPlay, id, buoc, after, board);
+						Vector2i rePlayer = selectPlayer(boardCheck, pos, woodPlay, steelPlay, after);
+						if (rePlayer == player) {
+							cancelSelection(sPoint, possibleMove, buoc);
+							playerSelected = false;
+						}
+						else playerMove(window, sBoard, player, possibleMove, pos, boardPoint, boardCheck, moved, sPoint, playerSelected, woodPlay, steelPlay, id, buoc, after, board);
 					}
 
-					if (!moved && selectPlayer(boardCheck, pos, woodPlay, steelPlay, after) != Vector2i(-1, -1))
+					else if (!moved && selectPlayer(boardCheck, pos, woodPlay, steelPlay, after) != Vector2i(-1, -1))
 					{
 						player = selectPlayer(boardCheck, pos, woodPlay, steelPlay, after);
 						playerSelected = true;
@@ -480,37 +506,8 @@ void PlayGame(RenderWindow &window, Music &music)
 			else clockCount++;
 			clock.restart();
 		}
-
 		if (!won) checkWin(board, won, music);
 
-		/*			/////drag and drop///////
-					if (e.type == Event::MouseButtonPressed)
-						if (e.key.code == Mouse::Left)
-							for (int i = 0; i < 6; i++)
-								if (f[i].getGlobalBounds().contains(pos.x, pos.y))
-								{
-									isMove = true; n = i;
-									dx = pos.x - f[i].getPosition().x;
-									dy = pos.y - f[i].getPosition().y;
-									oldPos = f[i].getPosition();
-								}
-
-					if (e.type == Event::MouseButtonReleased)
-						if (e.key.code == Mouse::Left)
-						{
-							isMove = false;
-							Vector2f p = f[n].getPosition() + Vector2f(size / 2, size / 2);
-							newPos = Vector2f(size*int(p.x / size), size*int(p.y / size));
-							str = toChessNote(oldPos) + toChessNote(newPos);
-							move(str);
-							std::cout << str << std::endl;
-							f[n].setPosition(newPos);
-						}
-
-				}
-
-				if (isMove) f[n].setPosition(pos.x - dx, pos.y - dy);
-		*/
 		////// draw  ///////		
 		window.clear();
 		window.draw(sBoard);
@@ -607,24 +604,24 @@ void Menu(RenderWindow &window)
 
 		if (Play.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
 		{
-			Play.setColor(Color::Green);
+			Play.setColor(Color::Black);
 			if (Mouse::isButtonPressed(Mouse::Left)) PlayGame(window, music);
 		}
-		else Play.setColor(Color::Red);
+		else Play.setColor(Color::White);
 
 		if (About.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
 		{
-			About.setColor(Color::Green);
+			About.setColor(Color::Black);
 			if (Mouse::isButtonPressed(Mouse::Left)) AboutGame(window);
 		}
-		else About.setColor(Color::Red);
+		else About.setColor(Color::White);
 
 		if (Exit.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
 		{
-			Exit.setColor(Color::Green);
+			Exit.setColor(Color::Black);
 			if (Mouse::isButtonPressed(Mouse::Left)) return;
 		}
-		else Exit.setColor(Color::Red);
+		else Exit.setColor(Color::White);
 	}
 }
 
