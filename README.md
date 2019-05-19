@@ -1,16 +1,19 @@
 # Wood-and-Steel
 1. Các chức năng đã hoàn thành được
+
 Menu bao gồm những lựa chọn như chơi mới, hướng dẫn chơi hoặc thoát.
 Quân cờ được thể hiện hoàn thiện bằng đồ hoạ, có hiệu ứng di chuyển.
 Có thể chơi lại nhiều ván liên tiếp.
 
 2. Các kỹ thuật lập trình đã sử dụng (thư viện, thuật toán)
+
 SFML được sử dụng.
 Thuật toán đo khoảng cách các bước trên bàn cờ hexagon.
 Thuật toán kiểm tra con trỏ chuột trên một bàn cờ hexagon.
 
 
 3. Những điểm tâm đắc trong khi thực hiện dự án
+
 Đây là một trò chơi do em thiết kế chứ không mô phỏng bất kì một trò chơi nào. 
 Tuy luật chơi và cách chơi vẫn chưa được chau chuốt và đầy đủ như em nghĩ nhưng em rất tâm đắc với các thuật toán do em viết trong trò chơi, đặc biệt là thuật toán kiểm tra con trỏ chuột và đo khoảng cách các bước trên bàn cờ hexagon.
 
