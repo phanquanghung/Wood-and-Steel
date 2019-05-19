@@ -1,4 +1,7 @@
 # Wood-and-Steel
+
+Video playtest version 1.2d: https://youtu.be/9bkUQOhScGg
+
 1. Các chức năng đã hoàn thành được
 
 Menu bao gồm những lựa chọn như chơi mới, hướng dẫn chơi hoặc thoát.
