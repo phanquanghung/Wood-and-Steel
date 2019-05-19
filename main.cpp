@@ -534,7 +534,6 @@ void PlayGame(RenderWindow &window, Music &music)
 		}
 		window.display();
 		if (Keyboard::isKeyPressed(Keyboard::Escape)) {
-			Music music;
 			music.openFromFile("Assets/Music/Soundtrack.wav");
 			music.setLoop(true);
 			music.play();
