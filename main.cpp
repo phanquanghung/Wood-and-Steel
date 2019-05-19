@@ -9,13 +9,12 @@
 #include <cmath>
 #include <algorithm>
 
-
 using namespace sf;
 
 int size = 80;
 Vector2f offset(6, 30);
 Sprite f[9]; //figures
-std::vector <std::vector<int> > board(5, std::vector<int>(13));
+
 int board0[5][13] =
 { 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0,
   3, 0,-2, 0, 0, 0, 0, 0, 0, 0,-2, 0,-3,
@@ -25,37 +24,6 @@ int board0[5][13] =
 
 const double tan_edge = 1.612903225806452; // canh cheo top-left
 // a = 58.83026432033091 b = 63
-
-/*
-std::string toChessNote(Vector2f p)
-{
-	std::string s = "";
-	s += char(p.x / size + 97);
-	s += char(p.y / size + 49);
-	return s;
-}
-
-Vector2f toCoord(char a, char b)
-{
-	float x = (int(a) - 97) * size;
-	float y = (int(b) - 49) * size;
-	return Vector2f(x, y);
-}
-
-void move(std::string str)
-{
-	Vector2f oldPos = toCoord(str[0], str[1]);
-	Vector2f newPos = toCoord(str[2], str[3]);
-
-	for (int i = 0; i < 6; i++)
-		if (f[i].getPosition() == newPos) f[i].setPosition(-100, -100);
-
-	for (int i = 0; i < 6; i++)
-		if (f[i].getPosition() == oldPos) f[i].setPosition(newPos);
-
-}
-
-*/
 
 void loadPosition(Sprite cards[], std::vector <std::vector<int> > &boardCheck, std::vector <std::vector<float> > &boardPoint, Sprite sPoint[], Sprite heads[])
 {
@@ -172,14 +140,17 @@ Vector2i HandleMouse(Vector2i pos)
 	}
 }
 
-Vector2i selectPlayer(std::vector <std::vector<int> > boardCheck, Vector2i pos)
+Vector2i selectPlayer(std::vector <std::vector<int> > boardCheck, Vector2i pos, int woodPlay, int steelPlay, bool after)
 {
 	Vector2i ij = HandleMouse(pos);
 	for (int i = 0; i < 6; ++i)
 	{
-		if (boardCheck[i][0] == ij.x && boardCheck[i][1] == ij.y) {
-//			std::cout << i;
-			return Vector2i(ij.x, ij.y);
+		if (boardCheck[i][0] == ij.x && boardCheck[i][1] == ij.y){
+			if (!after)
+			{
+				return Vector2i(ij.x, ij.y);
+			} else if ((i<3 && woodPlay>steelPlay) || (i > 2 && steelPlay > woodPlay))
+				return Vector2i(ij.x, ij.y);
 		}
 			
 	}
@@ -247,9 +218,28 @@ int arrayToNo(int so1, int so2)
 		}
 }
 
-void playerMove(Vector2i player, std::vector <std::vector<int> > possibleMove, Vector2i pos, std::vector <std::vector<float> > boardPoint, std::vector <std::vector<int> > &boardCheck, bool &moved, Sprite sPoint[], bool &playerSelected)
+void animation(std::vector <std::vector<float> > boardPoint, int newXY, int old, RenderWindow &window, int so, Sprite sBoard)
 {
-	int j = 0, dich=0;
+	Vector2f newPos = Vector2f(boardPoint[newXY][0], boardPoint[newXY][1]);
+	Vector2f oldPos = Vector2f(boardPoint[old][0], boardPoint[old][1]);
+	for (int k = 0; k < 45; k++)
+	{
+		Vector2f p = newPos - oldPos;
+		f[so].move(p.x / 45, p.y / 45);
+
+		window.draw(sBoard);
+		for (int i = 0; i < 6; i++) f[i].move(offset);
+		for (int i = 0; i < 6; i++) window.draw(f[i]); window.draw(f[so]);
+		for (int i = 0; i < 6; i++) f[i].move(-offset);
+		window.display();
+	}
+
+}
+
+void playerMove(RenderWindow &window, Sprite sBoard, Vector2i player, std::vector <std::vector<int> > possibleMove, Vector2i pos, std::vector <std::vector<float> > boardPoint, std::vector <std::vector<int> > &boardCheck, bool &moved, Sprite sPoint[], bool &playerSelected, int &woodPlay, int &steelPlay, int &j, int &buoc, bool &after, std::vector <std::vector<int> > &board)
+{
+	j = 0;
+	int dich=0;
 	while (j<6)
 	{
 		if (boardCheck[j][0] == player.x && boardCheck[j][1] == player.y) break;	
@@ -263,11 +253,19 @@ void playerMove(Vector2i player, std::vector <std::vector<int> > possibleMove, V
 			moved = true;
 			playerSelected = false;
 			int so = arrayToNo(possibleMove[i][0], possibleMove[i][1]);
+			int old = arrayToNo(player.x, player.y);
 			board[player.x][player.y] = board0[player.x][player.y]; // Vi tri vua roi khoi se tro ve nhu moi
+			animation(boardPoint, so, old, window, j, sBoard);
 			f[j].setPosition(boardPoint[so][0], boardPoint[so][1]);
-
+			if (buoc = 1) buoc = 0;
+			if (!after) after = true;
 			if (j < 3) // Wood
 			{
+				woodPlay++;
+				if (woodPlay == 3) {
+					woodPlay = -1;
+					steelPlay = 0;
+				}
 				if (board[possibleMove[i][0]][possibleMove[i][1]] == 1)
 				{
 //					std::cout << "giet steel";
@@ -288,6 +286,11 @@ void playerMove(Vector2i player, std::vector <std::vector<int> > possibleMove, V
 				else board[possibleMove[i][0]][possibleMove[i][1]] = -1; // di chuyen thuong
 			}
 			else { // Steel
+				steelPlay++;
+				if (steelPlay == 3) {
+					woodPlay = 0;
+					steelPlay = -1;
+				}
 				if (board[possibleMove[i][0]][possibleMove[i][1]] == -1)
 				{
 //					std::cout << "giet wood";
@@ -309,7 +312,7 @@ void playerMove(Vector2i player, std::vector <std::vector<int> > possibleMove, V
 		}
 	}
 }
-
+/*
 void gotoxy(int x, int y)
 {
 	static HANDLE h = NULL;
@@ -318,7 +321,7 @@ void gotoxy(int x, int y)
 	COORD c = { x, y };
 	SetConsoleCursorPosition(h, c);
 }
-
+*/
 void checkWin(std::vector <std::vector<int> > board, bool &won, Music &music)
 {
 	if (board[1][12] == 1 || board[3][12] == 1)
@@ -327,7 +330,6 @@ void checkWin(std::vector <std::vector<int> > board, bool &won, Music &music)
 		music.setLoop(true);
 		music.play();
 		std::string Title = "   --- STEEL WINS ---";
-		gotoxy(0, 0);
 		std::cout << Title;
 		won = true;
 	}
@@ -342,7 +344,6 @@ void checkWin(std::vector <std::vector<int> > board, bool &won, Music &music)
 		music.setLoop(true);
 		music.play();
 		std::string Title = "   --- WOOD WINS ---";
-		gotoxy(0, 0);
 		std::cout << Title;
 		won = true;
 	}
@@ -359,15 +360,11 @@ int selectCard(Vector2i pos, Sprite cards[])
 	}
 }
 
-int main()
+void PlayGame(RenderWindow &window, Music &music)
 {
-	RenderWindow window(VideoMode(1240, 800), "Wood And Steel", Style::Close);
-	sf::Music music;
-	music.openFromFile("Assets/Music/Soundtrack.wav");
-	music.setLoop(true);
-	music.play();
-
-	bool won = false, woodFirst = false;
+	bool after = false;
+	std::vector <std::vector<int> > board(5, std::vector<int>(13));
+	bool won = false;
 	std::vector <std::vector<int> > boardCheck(6, std::vector<int>(2, -1)); // Luu vi tri cua quan co
 	std::vector <std::vector<float> > boardPoint(57, std::vector<float>(2, 0)); // Luu vi tri cua point pixel
 	std::vector <std::vector<int> > possibleMove(57, std::vector<int>(2, -1)); // Luu vi tri di duoc
@@ -386,8 +383,8 @@ int main()
 	Sprite heads[6]; //cards
 	Sprite cards[6]; //cards
 	Sprite sPoint[57];
-	Sprite winBackgr;
-	Texture t1, t2, t3, t4, t5, t6, t7, t8;
+	Sprite winBackgr, ban;
+	Texture t1, t2, t3, t4, t5, t6, t7, t8, t9;
 	t1.loadFromFile("Assets/Play/card.png");
 	t2.loadFromFile("Assets/Play/map.png");
 	t3.loadFromFile("Assets/Play/steel.png");
@@ -396,6 +393,7 @@ int main()
 	t6.loadFromFile("Assets/Play/head.png");
 	t7.loadFromFile("Assets/Play/card0.png");
 	t8.loadFromFile("Assets/Backgrounds/wallpaper.jpg");
+	t9.loadFromFile("Assets/Play/ban.png");
 	for (int i = 0; i < 3; i++) f[i].setTexture(t4);
 	for (int i = 3; i < 9; i++) f[i].setTexture(t3);
 	cards[0].setTexture(t7);
@@ -403,22 +401,31 @@ int main()
 	for (int i = 0; i < 6; i++) heads[i].setTexture(t6);
 	for (int i = 0; i < 57; i++) sPoint[i].setTexture(t5);
 	winBackgr.setTexture(t8);
+	ban.setTexture(t9);
+	ban.setPosition(300, 550);
 	Sprite sBoard(t2);
 	sBoard.setPosition(offset);
 
 	Clock clock;
 	int clockCount = 0;
-	std::string pngString = ".png";
-	loadPosition(cards, boardCheck,boardPoint, sPoint, heads);
+	loadPosition(cards, boardCheck, boardPoint, sPoint, heads);
 
-//	float dx = 0, dy = 0;
-//	Vector2f oldPos = f[0].getPosition(), newPos = f[0].getPosition();
-//	std::string str = "";
-//	int n = 0;
-	
+	//	float dx = 0, dy = 0;
+	//	Vector2f oldPos = f[0].getPosition(), newPos = f[0].getPosition();
+	//	std::string str = "";
+	//	int n = 0;
+	/*
+		this->m_font.loadFromFile("Assets/Font/FS CoreMagicRough.otf");
+		this->m_text.setFont(this->m_font);
+		this->m_text.setString("Score: ");
+		this->m_text.setCharacterSize(15);
+		this->m_text.setPosition(200, 0);
+	*/
 	Vector2i player;
 	int buoc = 0;
 	bool playerSelected = false, cardSelected = false, moved = false;
+	int woodPlay = 0, steelPlay = 0;
+	int id = -1;
 	while (window.isOpen())
 	{
 		Vector2i pos = Mouse::getPosition(window) - Vector2i(offset);
@@ -436,45 +443,44 @@ int main()
 						buoc = selectCard(pos, cards);
 						cardSelected = true;
 					}
-					
+
 					//						std::cout << HandleMouse(pos).x << ' ' << HandleMouse(pos).y << std::endl;
 					else if (playerSelected)
 					{
-						playerMove(player, possibleMove, pos, boardPoint, boardCheck, moved, sPoint, playerSelected);
-						if (buoc = 1) buoc = 0;
+						playerMove(window, sBoard, player, possibleMove, pos, boardPoint, boardCheck, moved, sPoint, playerSelected, woodPlay, steelPlay, id, buoc, after, board);
 					}
 
-					if (!moved && selectPlayer(boardCheck, pos) != Vector2i(-1, -1))
+					if (!moved && selectPlayer(boardCheck, pos, woodPlay, steelPlay, after) != Vector2i(-1, -1))
 					{
-						player = selectPlayer(boardCheck, pos);
+						player = selectPlayer(boardCheck, pos, woodPlay, steelPlay, after);
 						playerSelected = true;
 						renderMelee(player, boardPoint, board, sPoint, possibleMove, boardCheck, buoc);
-						
+
 
 					}
-/*					for (int i = 0; i < 5; i++)
-					{
-						for (int j = 0; j < 13; j++)
-						{
-							std::cout << board[i][j] << ' '; // Map vector
-						}
-						std::cout << std::endl;
-					}
-					std::cout << std::endl;
-*/
+					/*					for (int i = 0; i < 5; i++)
+										{
+											for (int j = 0; j < 13; j++)
+											{
+												std::cout << board[i][j] << ' '; // Map vector
+											}
+											std::cout << std::endl;
+										}
+										std::cout << std::endl;
+					*/
 				}
 			}
 		}
 		moved = false;
-		
-		if (clock.getElapsedTime().asSeconds() > 0.15f) {		
-			t3.loadFromFile("Assets/Play/steel" + std::to_string(clockCount) + pngString);
-			t4.loadFromFile("Assets/Play/wood" + std::to_string(clockCount) + pngString);
+
+		if (clock.getElapsedTime().asSeconds() > 0.15f) {
+			t3.loadFromFile("Assets/Play/steel" + std::to_string(clockCount) + ".png");
+			t4.loadFromFile("Assets/Play/wood" + std::to_string(clockCount) + ".png");
 			if (clockCount == 17) clockCount = 0;
 			else clockCount++;
 			clock.restart();
 		}
-		
+
 		if (!won) checkWin(board, won, music);
 
 		/*			/////drag and drop///////
@@ -523,13 +529,111 @@ int main()
 		for (int i = 0; i < 57; i++) sPoint[i].move(offset);
 		for (int i = 0; i < 57; i++) window.draw(sPoint[i]);
 		for (int i = 0; i < 57; i++) sPoint[i].move(-offset);
+
+		//		window.draw(ban);
 		if (won) {
 			winBackgr.setPosition(0, 0);
 			window.draw(winBackgr);
 		}
 		window.display();
-	
+		if (Keyboard::isKeyPressed(Keyboard::Escape)) {
+			Music music;
+			music.openFromFile("Assets/Music/Soundtrack.wav");
+			music.setLoop(true);
+			music.play();
+			break;
+		}
 	}
+	return;
+}
+
+void AboutGame(RenderWindow &window)
+{
+	Texture background;
+	background.loadFromFile("Assets/Backgrounds/instructions_window.jpg");
+
+	Sprite Background(background);
+
+	while (window.isOpen())
+	{
+		Event event;
+		while (window.pollEvent(event))
+		{
+			if (event.type == Event::Closed) window.close();
+		}
+		window.clear();
+		window.draw(Background);
+		window.display();
+		if (Mouse::isButtonPressed(Mouse::Left) && Background.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y)) return;
+	}
+}
+
+void Menu(RenderWindow &window)
+{
+	Music music;
+	music.openFromFile("Assets/Music/Soundtrack.wav");
+	music.setLoop(true);
+	music.play();
+	Texture background, play, about, exit;
+
+	background.loadFromFile("Assets/Backgrounds/wallpaper.jpg");
+	play.loadFromFile("Assets/Backgrounds/Play.png");
+	about.loadFromFile("Assets/Backgrounds/Instructions.png");
+	exit.loadFromFile("Assets/Backgrounds/Exit.png");
+
+	Sprite Background(background), Play(play), About(about), Exit(exit);
+
+	Play.setOrigin(71, 20);
+	About.setOrigin(200, 20);
+	Exit.setOrigin(71, 20);
+
+	Play.setPosition(620, 500);
+	About.setPosition(620, 600);
+	Exit.setPosition(620, 700);
+
+	while (window.isOpen())
+	{
+		Event event;
+		while (window.pollEvent(event))
+		{
+			if (event.type == Event::Closed) window.close();
+		}
+		window.clear();
+		window.draw(Background);
+		window.draw(Play);
+		window.draw(About);
+		window.draw(Exit);
+		window.display();
+
+		if (Play.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+		{
+			Play.setColor(Color::Green);
+			if (Mouse::isButtonPressed(Mouse::Left)) PlayGame(window, music);
+		}
+		else Play.setColor(Color::Red);
+
+		if (About.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+		{
+			About.setColor(Color::Green);
+			if (Mouse::isButtonPressed(Mouse::Left)) AboutGame(window);
+		}
+		else About.setColor(Color::Red);
+
+		if (Exit.getGlobalBounds().contains(Mouse::getPosition(window).x, Mouse::getPosition(window).y))
+		{
+			Exit.setColor(Color::Green);
+			if (Mouse::isButtonPressed(Mouse::Left)) return;
+		}
+		else Exit.setColor(Color::Red);
+	}
+}
+
+int main()
+{
+//	window.setFramerateLimit(120);
+	srand(time(NULL));
+	RenderWindow window(VideoMode(1240, 800), "Wood And Steel", Style::Close);
+	Menu(window);
 	return 0;
 }
 
