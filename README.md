@@ -10,7 +10,9 @@ Có thể chơi lại nhiều ván liên tiếp.
 
 2. Các kỹ thuật lập trình đã sử dụng (thư viện, thuật toán)
 
-SFML được sử dụng.
+SFML được sử dụng. Kỹ thuật chia chương trình thành nhiều hàm.
+
+
 Thuật toán đo khoảng cách các bước trên bàn cờ hexagon.
 Thuật toán kiểm tra con trỏ chuột trên một bàn cờ hexagon.
 
