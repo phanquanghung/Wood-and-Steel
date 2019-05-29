@@ -22,6 +22,10 @@ Thuật toán kiểm tra con trỏ chuột trên một bàn cờ hexagon.
 Đây là một trò chơi do em thiết kế chứ không mô phỏng bất kì một trò chơi nào. 
 Tuy luật chơi và cách chơi vẫn chưa được chau chuốt như em mong đợi nhưng em rất tâm đắc với các thuật toán do em viết trong trò chơi, đặc biệt là thuật toán kiểm tra con trỏ chuột và đo khoảng cách các bước trên bàn cờ hexagon.
 
+HƯỚNG DẪN
+
+Tải về rồi ấn vào Wood And Steel.exe để chơi.
+File main.cpp chỉ có tác dụng để đọc code, không cần thiết để chương trình chạy.
 
 LUẬT CHƠI
 
